@@ -141,6 +141,22 @@ static PreferencesWindowController *prefsCtrl = nil;
 		}
 	}
 
+    //DisplayCaptions
+    [self addCaptionsOptionToComboWithTitle:@"When content is detected" andValue:@"Content"];
+    [self addCaptionsOptionToComboWithTitle:@"When content or a command is detected" andValue:@"Command"];
+    [self addCaptionsOptionToComboWithTitle:@"Even when no content or command is detected" andValue:@"Stream"];
+
+    NSString *savedCaptionsOption = [[NSUserDefaults standardUserDefaults] objectForKey:@"displayCaptions"];
+    if(savedCaptionsOption == nil)
+        savedCaptionsOption = @"Command";
+
+    for(NSMenuItem *i in [[displayCaptionsCombo menu] itemArray]) {
+        if([[i representedObject] isEqualToString:savedCaptionsOption]) {
+                [displayCaptionsCombo selectItem:i];
+                break;
+        }
+    }
+
     // Graph options
     BOOL savedGraphAdmShowTrackUIDs = [[NSUserDefaults standardUserDefaults] boolForKey:@"graphAdmShowTrackUIDs"];
     [graphAdmShowTrackUIDs setState:savedGraphAdmShowTrackUIDs?NSControlStateValueOn:NSControlStateValueOff];
@@ -175,6 +191,13 @@ static PreferencesWindowController *prefsCtrl = nil;
 	[item release];
 }
 
+- (void)addCaptionsOptionToComboWithTitle:(NSString*)title andValue:(NSString*)value {
+    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:nil keyEquivalent:@""];
+    [item setRepresentedObject:value];
+    [[displayCaptionsCombo menu] addItem:item];
+    [item release];
+}
+
 - (IBAction)languageChanged:(id)sender {
 	
 	NSMenuItem *obj = [langsCombo selectedItem];
@@ -202,6 +225,17 @@ static PreferencesWindowController *prefsCtrl = nil;
 
 	[[NSUserDefaults standardUserDefaults] setObject:value forKey:@"defaultView"];
 }
+
+- (IBAction)captionsOptionChanged:(id)sender {
+    NSMenuItem *obj = [displayCaptionsCombo selectedItem];
+    NSString *value = [obj representedObject];
+
+    if (!value)
+        value = @"Command";
+
+    [[NSUserDefaults standardUserDefaults] setObject:value forKey:@"displayCaptions"];
+}
+
 - (IBAction)subscribeClicked:(id)sender {
     if (@available(macOS 10.9, *)) {
         [[SubscribeWindowController controller] show];
