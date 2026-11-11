@@ -37,6 +37,11 @@ jobs:
             name: ', without Unicode'
             Format_Profile: Demand paged executable / ARM64
             unicode: 'no'
+          - os: ubuntu-26.04
+            name: ', CLI without Unicode'
+            Format_Profile: Shared object / AMD x86-64
+            unicode: 'yes'
+            cli_options: --disable-unicode
       fail-fast: false
     name: Unix (${{ matrix.os }}${{ matrix.name }})
     runs-on: ${{ matrix.os }}
@@ -81,7 +86,7 @@ jobs:
         run: |
           cd MediaInfo/Project/GNU/CLI
           autoreconf -if
-          ./configure --enable-staticlibs
+          ./configure --enable-staticlibs ${{ matrix.cli_options }}
       - name: Build CLI
         run: |
           cd MediaInfo/Project/GNU/CLI

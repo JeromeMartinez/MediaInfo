@@ -103,7 +103,7 @@ int main(int argc, char* argv_ansi[])
 {
     //Localisation
     setlocale(LC_ALL, "");
-    MediaInfo::Option_Static(__T("CharSet"), __T(""));
+    Core_MediaInfo::Option_Static(__T("CharSet"), __T(""));
 
     //Initialize terminal (to fix Unicode output on Win32)
     #if defined(CLI_CONSOLE_WIDE)
@@ -113,7 +113,7 @@ int main(int argc, char* argv_ansi[])
         _setmode(_fileno(stderr), _O_U8TEXT);
         CLI_Option_Bom=false;
     #endif
-    MediaInfo::Option_Static(__T("LineSeparator"), __T("\n")); //Using sdtout
+    Core_MediaInfo::Option_Static(__T("LineSeparator"), __T("\n")); //Using sdtout
 
     //Configure MediaInfo core
     Core MI;
@@ -162,7 +162,7 @@ int main(int argc, char* argv_ansi[])
     STRINGOUT(Inform);
 
     //Output, in a file if needed
-    LogFile_Action(Inform);
+    LogFile_Action(MI, Inform);
 
     //Error if there is no file or if a file could not be opened (it is in the list without any stream)
     size_t Files_Count=MI.Count_Get();

@@ -47,6 +47,7 @@ AC_ARG_ENABLE(arch-x86_64,      AS_HELP_STRING([--enable-arch-x86_64],      [Cre
 AC_ARG_ENABLE(arch-arm64,       AS_HELP_STRING([--enable-arch-arm64],       [Create Mac arm64 architecture]),               , enable_arch_arm64=no)
 AC_ARG_ENABLE(staticlibs,       AS_HELP_STRING([--enable-staticlibs],       [Use static libmediainfo and libzen]),          , enable_staticlibs=no)
 AC_ARG_ENABLE([stream_missing], [AS_HELP_STRING(([--enable-stream_missing], [Disable stream support (old compilers)]))],    , [enable_stream_missing=no])
+AC_ARG_ENABLE(unicode,          AS_HELP_STRING([--disable-unicode],         [Without Unicode (default: as libzen)]),        , enable_unicode=auto)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
@@ -65,9 +66,11 @@ dnl ### Options from elsewhere
 dnl #########################################################################
 
 dnl -------------------------------------------------------------------------
-dnl Unicode
+dnl Unicode, by default as libzen
 dnl
-if test -e ../../../../ZenLib/Project/GNU/Library/libzen-config; then
+if test "$enable_unicode" != "auto"; then
+	:
+elif test -e ../../../../ZenLib/Project/GNU/Library/libzen-config; then
 	enable_unicode="$(../../../../ZenLib/Project/GNU/Library/libzen-config Unicode)"
 elif test "$(command -v libzen-config)" ; then
 	enable_unicode="$(libzen-config Unicode)"
@@ -100,8 +103,18 @@ if test "$enable_unicode" = "yes"; then
 	AC_DEFINE(UNICODE)
 	MediaInfo_CXXFLAGS="$MediaInfo_CXXFLAGS -DUNICODE"
 	MediaInfo_Unicode="yes"
+	MediaInfo_NoUnicode="no"
 else
 	MediaInfo_Unicode="no"
+	dnl Narrow strings of the system, with the classes of libmediainfo for them, without ZenLib (see Common/Core.h), except on Windows
+	dnl (UTF-16 command line with the UTF-8 text of libmediainfo without Unicode)
+	case "$host_os" in
+		mingw* ) MediaInfo_NoUnicode="no" ;;
+		* )
+			AC_DEFINE(MEDIAINFO_CLI_NOUNICODE)
+			MediaInfo_NoUnicode="yes"
+		;;
+	esac
 fi
 
 dnl -------------------------------------------------------------------------
@@ -199,9 +212,11 @@ else
 fi
 
 dnl -------------------------------------------------------------------------
-dnl ZenLib
+dnl ZenLib (without Unicode, only for linking the static libmediainfo)
 dnl
-if test -e ../../../../ZenLib/Project/GNU/Library/libzen.la; then
+if test "$MediaInfo_NoUnicode" = "yes" && (test "$with_dll" = "yes" || test "$enable_staticlibs" != "yes"); then
+	with_zenlib="no"
+elif test -e ../../../../ZenLib/Project/GNU/Library/libzen.la; then
 	CXXFLAGS="$CXXFLAGS $(../../../../ZenLib/Project/GNU/Library/libzen-config CXXFLAGS)"
 	MediaInfoLib_CXXFLAGS="$MediaInfoLib_CXXFLAGS $(../../../../ZenLib/Project/GNU/Library/libzen-config CXXFLAGS)"
 	if test "$enable_staticlibs" = "yes"; then

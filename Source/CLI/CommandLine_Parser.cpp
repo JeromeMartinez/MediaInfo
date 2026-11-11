@@ -43,7 +43,11 @@
 // Defaults
 //***************************************************************************
 
-ZenLib::Ztring LogFile_FileName;
+#if defined(MEDIAINFO_CLI_NOUNICODE)
+    MediaInfoNameSpace::String LogFile_FileName;
+#else
+    ZenLib::Ztring LogFile_FileName;
+#endif
 
 //***************************************************************************
 // Main
@@ -191,7 +195,7 @@ CL_OPTION(Version)
 CL_OPTION(LogFile)
 {
     //Form : --LogFile=Text
-    #if defined(UNICODE) || defined(CLI_STRINGS_UTF8)
+    #if defined(UNICODE) || defined(CLI_STRINGS_UTF8) || defined(MEDIAINFO_CLI_NOUNICODE)
         LogFile_FileName.assign(Argument, 10, std::string::npos);
     #else
         LogFile_FileName=ZenLib::FileName_From_Native(Argument.c_str()+10); //UTF-8 text for ZenLib
@@ -224,17 +228,36 @@ CL_OPTION(Default)
     return MI_OK;
 }
 
-void LogFile_Action(const ZenLib::tstring& Inform)
+void LogFile_Action(Core &MI, const MediaInfoNameSpace::String& Inform)
 {
     if (LogFile_FileName.empty())
         return;
 
-    #if defined(UNICODE) || defined(CLI_STRINGS_UTF8)
+    #if defined(MEDIAINFO_CLI_NOUNICODE)
+        //UTF-8 text from the library, the output is in the encoding of the locale
+        (void)Inform;
+        MI.Menu_Option_Preferences_Option(__T("CharSet"), __T("UTF-8"));
+        std::string Inform_Ansi(MI.Inform_Get());
+        MI.Menu_Option_Preferences_Option(__T("CharSet"), MediaInfoNameSpace::String());
+    #elif defined(UNICODE) || defined(CLI_STRINGS_UTF8)
+        (void)MI;
         std::string Inform_Ansi(ZenLib::Ztring(Inform).To_UTF8());
     #else
+        (void)MI;
         std::string Inform_Ansi(ZenLib::Ztring().From_Local(Inform.c_str()).To_UTF8()); //In the encoding of the locale, as the output
     #endif
 
+#if defined(MEDIAINFO_CLI_NOUNICODE)
+    //Name as the system gives it, else as the library gives it to the system, e.g. in UTF-8 on macOS with a locale in another encoding
+    //(option not known by a library older than this option, loaded at run time)
+    std::ofstream File(LogFile_FileName.c_str(), std::ios_base::trunc);
+    if (!File.is_open())
+    {
+        MediaInfoNameSpace::String Name=Core_MediaInfo::Option_Static(__T("FileName_System"), LogFile_FileName);
+        if (!Name.empty() && Name!=LogFile_FileName && Name!=__T("Option not known"))
+            File.open(Name.c_str(), std::ios_base::trunc);
+    }
+#else
 #if defined(_WIN32) && defined(__cpp_lib_filesystem) && defined(__cpp_lib_char8_t)
     std::string LogFile_FileName_u8(LogFile_FileName.To_UTF8());
     std::u8string LogFile_FileName_u8string(LogFile_FileName_u8.begin(), LogFile_FileName_u8.end());
@@ -245,6 +268,7 @@ void LogFile_Action(const ZenLib::tstring& Inform)
     auto path = ZenLib::FileName_To_Native(LogFile_FileName); // Same encoding as the files opened by ZenLib (on Windows, may not have Unicode filepath support)
 #endif
     std::ofstream File(path, std::ios_base::trunc);
+#endif
 
     #if defined(CLI_CONSOLE_WIDE)
         if (CLI_Option_Bom)
@@ -255,5 +279,9 @@ void LogFile_Action(const ZenLib::tstring& Inform)
 void CallBack_Set(Core &MI, void* Event_CallBackFunction)
 {
     //CallBack configuration
-    MI.Menu_Option_Preferences_Option(__T("Event_CallBackFunction"), __T("CallBack=memory://")+ZenLib::Ztring::ToZtring((size_t)Event_CallBackFunction));
+    #if defined(MEDIAINFO_CLI_NOUNICODE)
+        MI.Menu_Option_Preferences_Option(__T("Event_CallBackFunction"), __T("CallBack=memory://")+std::to_string((size_t)Event_CallBackFunction));
+    #else
+        MI.Menu_Option_Preferences_Option(__T("Event_CallBackFunction"), __T("CallBack=memory://")+ZenLib::Ztring::ToZtring((size_t)Event_CallBackFunction));
+    #endif
 }

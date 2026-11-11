@@ -12,14 +12,18 @@
 
 //---------------------------------------------------------------------------
 #include "Core.h"
-#include "ZenLib/Ztring.h"
-#include "ZenLib/File.h"
+#if defined(MEDIAINFO_CLI_NOUNICODE)
+    #include <sstream>
+#else
+    #include "ZenLib/Ztring.h"
+    #include "ZenLib/File.h"
+    using namespace ZenLib;
+#endif
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 const MediaInfoNameSpace::Char* MEDIAINFO_TITLE=__T("MediaArea.net/MediaInfo");
-ZenLib::Ztring Text_Temp;
-using namespace ZenLib;
+MediaInfoNameSpace::String Text_Temp;
 //---------------------------------------------------------------------------
 
 
@@ -30,7 +34,7 @@ using namespace ZenLib;
 //---------------------------------------------------------------------------
 Core::Core()
 {
-    MI=new MediaInfoNameSpace::MediaInfoList;
+    MI=new Core_MediaInfoList;
 
     GUI_Main_Handler=NULL;
     Kind=Kind_Easy;
@@ -390,7 +394,13 @@ void Core::Menu_Debug_Details (float Value)
 {
     Details=Value;
 
-    MI->Option(__T("Inform"), __T("Details;")+ZenLib::Ztring::ToZtring(Value));
+    #if defined(MEDIAINFO_CLI_NOUNICODE)
+        std::ostringstream Details_Text;
+        Details_Text<<Value;
+        MI->Option(__T("Inform"), __T("Details;")+Details_Text.str());
+    #else
+        MI->Option(__T("Inform"), __T("Details;")+ZenLib::Ztring::ToZtring(Value));
+    #endif
 }
 
 //---------------------------------------------------------------------------
@@ -509,7 +519,7 @@ String Core::StreamName (stream_t StreamKind) {
 }
 
 String Core::Parameters () {
-    return MediaInfoNameSpace::MediaInfo::Option_Static(__T("Info_Parameters_CSV"));
+    return Core_MediaInfo::Option_Static(__T("Info_Parameters_CSV"));
 }
 
 size_t Core::State_Get() {

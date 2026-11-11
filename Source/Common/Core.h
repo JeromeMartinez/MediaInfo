@@ -16,6 +16,18 @@
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
+//CLI without Unicode (MEDIAINFO_CLI_NOUNICODE, not for Windows): narrow strings, the arguments as the system gives them and the output in
+//the encoding of the locale, with the classes of the library for these strings (or its C API), so whatever the Unicode mode of the library
+//and without ZenLib
+#if defined(MEDIAINFO_CLI_NOUNICODE)
+    #if defined(_WIN32)
+        #error MEDIAINFO_CLI_NOUNICODE is not for Windows
+    #endif
+    #undef UNICODE //Also if it comes from the flags of the libraries
+    #undef _UNICODE
+#endif
+
+//---------------------------------------------------------------------------
 #ifdef MEDIAINFO_DLL_RUNTIME
     #include "MediaInfoDLL/MediaInfoDLL.h"
     #define MediaInfoNameSpace MediaInfoDLL
@@ -27,6 +39,16 @@
     #define MediaInfoNameSpace MediaInfoLib
 #endif
 using namespace MediaInfoNameSpace;
+
+//---------------------------------------------------------------------------
+//Classes of the library
+#if defined(MEDIAINFO_CLI_NOUNICODE) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC)
+    typedef MediaInfoLib::MediaInfoA Core_MediaInfo;
+    typedef MediaInfoLib::MediaInfoListA Core_MediaInfoList;
+#else
+    typedef MediaInfoNameSpace::MediaInfo Core_MediaInfo;
+    typedef MediaInfoNameSpace::MediaInfoList Core_MediaInfoList;
+#endif
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -104,7 +126,7 @@ public:
     MediaInfoNameSpace::String &Text_Get() {return Text;};
     void* GUI_Main_Handler;
 
-    MediaInfoNameSpace::MediaInfoList* MI;
+    Core_MediaInfoList* MI;
 protected:
     MediaInfoNameSpace::String  Text;
     kind    Kind;

@@ -9,8 +9,11 @@
     #include <iostream>
 #endif
 #include <fstream>
-#include "ZenLib/Ztring.h"
-#include "ZenLib/OS_Utils.h"
+#include "Common/Core.h"
+#if !defined(MEDIAINFO_CLI_NOUNICODE)
+    #include "ZenLib/Ztring.h"
+    #include "ZenLib/OS_Utils.h"
+#endif
 
 #ifdef __WINDOWS__
     #undef __TEXT
@@ -19,8 +22,9 @@
 //---------------------------------------------------------------------------
 //Strings: Unicode, else UTF-8 text with the C++ API of the library (as in
 //ZenLib), from the same arguments and with the same output as with Unicode,
-//else (C API of the library) the bytes of the arguments and of the output
-#if !defined(UNICODE) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC)
+//else (C API of the library, or CLI without Unicode, see Common/Core.h) the
+//bytes of the arguments and of the output
+#if !defined(UNICODE) && !defined(MEDIAINFO_CLI_NOUNICODE) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC)
     #define CLI_STRINGS_UTF8
 #endif
 //Wide console of the Microsoft C library, UTF-8 when the output is redirected
@@ -167,7 +171,7 @@ inline void STRINGOUT_Wide(const wchar_t* Text)
 
 //---------------------------------------------------------------------------
 //Write to terminal
-inline void STRINGOUT(const ZenLib::tstring& Text)
+inline void STRINGOUT(const MediaInfoNameSpace::String& Text)
 {
     #ifdef UNICODE
         #if defined(STREAM_MISSING)
@@ -227,7 +231,7 @@ inline void STRINGOUT(const ZenLib::tstring& Text)
         #endif //_MSC_VER
     #endif // UNICODE
 }
-inline void STRINGERR(ZenLib::Ztring Text)
+inline void STRINGERR(const MediaInfoNameSpace::String& Text)
 {
     #ifdef UNICODE
         #if defined(STREAM_MISSING)
@@ -235,15 +239,15 @@ inline void STRINGERR(ZenLib::Ztring Text)
         #elif defined(_MSC_VER)
             std::wcerr<<Text.c_str()<<std::endl;
         #else //_MSC_VER
-            std::cerr<<Text.To_Local().c_str()<<std::endl;
+            std::cerr<<ZenLib::Ztring(Text).To_Local().c_str()<<std::endl;
         #endif //_MSC_VER
     #elif defined(CLI_STRINGS_UTF8)
         #if defined(STREAM_MISSING)
-            fwprintf(stderr, L"%ls\n", Text.To_Unicode().c_str());
+            fwprintf(stderr, L"%ls\n", ZenLib::Ztring(Text).To_Unicode().c_str());
         #elif defined(_MSC_VER)
-            std::wcerr<<Text.To_Unicode().c_str()<<std::endl;
+            std::wcerr<<ZenLib::Ztring(Text).To_Unicode().c_str()<<std::endl;
         #else //_MSC_VER
-            std::cerr<<Text.To_Local().c_str()<<std::endl;
+            std::cerr<<ZenLib::Ztring(Text).To_Local().c_str()<<std::endl;
         #endif //_MSC_VER
     #else // UNICODE
         #if defined(STREAM_MISSING)
@@ -256,7 +260,11 @@ inline void STRINGERR(ZenLib::Ztring Text)
 
 inline void TEXTOUT(const char* Text)
 {
-    STRINGOUT(ZenLib::Ztring().From_ISO_8859_1(Text));
+    #if defined(MEDIAINFO_CLI_NOUNICODE)
+        STRINGOUT(Text); //ASCII text
+    #else
+        STRINGOUT(ZenLib::Ztring().From_ISO_8859_1(Text));
+    #endif
 }
 
 enum MI_Return
