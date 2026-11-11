@@ -16,6 +16,23 @@
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
+//Strings of the CLI (MEDIAINFO_CLI), whatever the Unicode mode of the library and the flags of the build: wide on Windows (UTF-16 command
+//line and console), else narrow (the arguments as the system gives them, the output in the encoding of the locale)
+#if defined(MEDIAINFO_CLI)
+    #if defined(_WIN32)
+        #ifndef UNICODE
+            #define UNICODE
+        #endif
+        #ifndef _UNICODE
+            #define _UNICODE
+        #endif
+    #else
+        #undef UNICODE
+        #undef _UNICODE
+    #endif
+#endif
+
+//---------------------------------------------------------------------------
 #ifdef MEDIAINFO_DLL_RUNTIME
     #include "MediaInfoDLL/MediaInfoDLL.h"
     #define MediaInfoNameSpace MediaInfoDLL
@@ -27,6 +44,21 @@
     #define MediaInfoNameSpace MediaInfoLib
 #endif
 using namespace MediaInfoNameSpace;
+
+//---------------------------------------------------------------------------
+//Classes of the library: the CLI uses the ones with its own strings, so it needs neither ZenLib nor the Unicode mode of the library
+#if defined(MEDIAINFO_CLI) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC)
+    #if defined(UNICODE)
+        typedef MediaInfoLib::MediaInfoW Core_MediaInfo;
+        typedef MediaInfoLib::MediaInfoListW Core_MediaInfoList;
+    #else
+        typedef MediaInfoLib::MediaInfoA Core_MediaInfo;
+        typedef MediaInfoLib::MediaInfoListA Core_MediaInfoList;
+    #endif
+#else
+    typedef MediaInfoNameSpace::MediaInfo Core_MediaInfo;
+    typedef MediaInfoNameSpace::MediaInfoList Core_MediaInfoList;
+#endif
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -104,7 +136,7 @@ public:
     MediaInfoNameSpace::String &Text_Get() {return Text;};
     void* GUI_Main_Handler;
 
-    MediaInfoNameSpace::MediaInfoList* MI;
+    Core_MediaInfoList* MI;
 protected:
     MediaInfoNameSpace::String  Text;
     kind    Kind;

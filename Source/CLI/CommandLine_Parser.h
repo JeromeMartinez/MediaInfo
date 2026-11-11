@@ -45,7 +45,9 @@ CL_OPTION(Default);
 // Options which need actions
 //***************************************************************************
 
-void LogFile_Action(const ZenLib::tstring& Inform);
+#if defined(MEDIAINFO_CLI)
+void LogFile_Action(Core &MI, const MediaInfoNameSpace::String& Inform);
+#endif //defined(MEDIAINFO_CLI)
 void CallBack_Set(Core &MI, void* Event_CallBackFunction);
 
 #endif
