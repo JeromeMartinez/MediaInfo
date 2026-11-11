@@ -65,19 +65,13 @@ dnl ### Options from elsewhere
 dnl #########################################################################
 
 dnl -------------------------------------------------------------------------
-dnl Unicode
+dnl Unicode: strings of the CLI, wide on Windows, else narrow in the encoding of the locale, whatever the Unicode mode of the library and
+dnl its flags (see Common/Core.h)
 dnl
-if test -e ../../../../ZenLib/Project/GNU/Library/libzen-config; then
-	enable_unicode="$(../../../../ZenLib/Project/GNU/Library/libzen-config Unicode)"
-elif test "$(command -v libzen-config)" ; then
-	enable_unicode="$(libzen-config Unicode)"
-else
-	if ${PKG_CONFIG:-pkg-config} --exists libzen; then
-		enable_unicode="$(${PKG_CONFIG:-pkg-config} --variable=Unicode libzen)"
-	else
-		AC_MSG_ERROR([libzen configuration is not found])
-	fi
-fi
+case "$host_os" in
+	mingw* ) enable_unicode="yes" ;;
+	* ) enable_unicode="no" ;;
+esac
 
 dnl #########################################################################
 dnl ### Parsing options
@@ -94,15 +88,9 @@ dnl ### C/C++ compiler options used to compile
 dnl #########################################################################
 
 dnl -------------------------------------------------------------------------
-dnl Unicode
+dnl CLI (Common/Core.h)
 dnl
-if test "$enable_unicode" = "yes"; then
-	AC_DEFINE(UNICODE)
-	MediaInfo_CXXFLAGS="$MediaInfo_CXXFLAGS -DUNICODE"
-	MediaInfo_Unicode="yes"
-else
-	MediaInfo_Unicode="no"
-fi
+AC_DEFINE(MEDIAINFO_CLI)
 
 dnl -------------------------------------------------------------------------
 dnl Use DLL
@@ -199,43 +187,22 @@ else
 fi
 
 dnl -------------------------------------------------------------------------
-dnl ZenLib
+dnl ZenLib, not used by the CLI, only for linking the static libmediainfo
 dnl
-if test -e ../../../../ZenLib/Project/GNU/Library/libzen.la; then
-	CXXFLAGS="$CXXFLAGS $(../../../../ZenLib/Project/GNU/Library/libzen-config CXXFLAGS)"
-	MediaInfoLib_CXXFLAGS="$MediaInfoLib_CXXFLAGS $(../../../../ZenLib/Project/GNU/Library/libzen-config CXXFLAGS)"
-	if test "$enable_staticlibs" = "yes"; then
-		with_zenlib="builtin (static)"
-		LIBS="$LIBS $(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS_Static)"
-	else
-		with_zenlib="builtin"
-		LIBS="$LIBS $(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS)"
-	fi
+if test "$with_dll" = "yes" || test "$enable_staticlibs" != "yes"; then
+	with_zenlib="no"
+elif test -e ../../../../ZenLib/Project/GNU/Library/libzen.la; then
+	with_zenlib="builtin (static)"
+	LIBS="$LIBS $(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS_Static)"
 elif test "$(command -v libzen-config)" ; then
-	CXXFLAGS="$CXXFLAGS $(libzen-config CXXFLAGS)"
-	MediaInfoLib_CXXFLAGS="$MediaInfoLib_CXXFLAGS $(libzen-config CXXFLAGS)"
-	if test "$enable_staticlibs" = "yes"; then
-		with_zenlib="system (static)"
-		LIBS="$LIBS $(libzen-config LIBS_Static)"
-	else
-		with_zenlib="system"
-		LIBS="$LIBS $(libzen-config LIBS)"
-	fi
+	with_zenlib="system (static)"
+	LIBS="$LIBS $(libzen-config LIBS_Static)"
+elif ${PKG_CONFIG:-pkg-config} --exists libzen; then
+	with_zenlib="system (static)"
+	LIBS="$LIBS $(${PKG_CONFIG:-pkg-config} --variable=Libs_Static libzen)"
+	LIBS="$LIBS $(${PKG_CONFIG:-pkg-config} --static --libs libzen)"
 else
-	if ${PKG_CONFIG:-pkg-config} --exists libzen; then
-		CXXFLAGS="$CXXFLAGS $(${PKG_CONFIG:-pkg-config} --cflags libzen)"
-		MediaInfoLib_CXXFLAGS="$MediaInfoLib_CXXFLAGS $(${PKG_CONFIG:-pkg-config} --cflags libzen)"
-		if test "$enable_staticlibs" = "yes"; then
-			with_zenlib="system (static)"
-			LIBS="$LIBS $(${PKG_CONFIG:-pkg-config} --variable=Libs_Static libzen)"
-			LIBS="$LIBS $(${PKG_CONFIG:-pkg-config} --static --libs libzen)"
-		else
-			with_zenlib="system"
-			LIBS="$LIBS $(${PKG_CONFIG:-pkg-config} --libs libzen)"
-		fi
-	else
-		AC_MSG_ERROR([libzen configuration is not found])
-	fi
+	AC_MSG_ERROR([libzen configuration is not found])
 fi
 
 dnl #########################################################################

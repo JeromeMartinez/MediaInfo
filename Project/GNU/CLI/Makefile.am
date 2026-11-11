@@ -10,7 +10,7 @@ mediainfo_SOURCES = \
 #mediainfo_LDFLAGS     = -no-undefined -version-info 0:0:0
 AM_CXXFLAGS = -std=c++11
 
-INCLUDES = -I../../../Source -I../../../../MediaInfoLib/Source -I../../../../ZenLib/Source
+INCLUDES = -I../../../Source -I../../../../MediaInfoLib/Source
 
 AM_TESTS_FD_REDIRECT = 9>&2
 

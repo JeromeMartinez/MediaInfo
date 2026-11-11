@@ -38,7 +38,7 @@
 			<AllPackageLibs>xmlrtl.lib;rtl.lib;vclx.lib;vcl.lib;vclie.lib</AllPackageLibs>
 			<DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
 			<NoVCL>true</NoVCL>
-			<BCC_Defines>NO_STRICT;WIN32;_WIN32;UNICODE;_UNICODE;MEDIAINFO_DLLx;$(BCC_Defines)</BCC_Defines>
+			<BCC_Defines>NO_STRICT;WIN32;_WIN32;UNICODE;_UNICODE;MEDIAINFO_CLI;MEDIAINFO_DLLx;$(BCC_Defines)</BCC_Defines>
 			<ILINK_LibraryPath>..\..\..\..\ZenLib\Project\BCB\Library\Release_Build\;..\..\..\..\MediaInfoLib\Project\BCB\Library\Release_Build\;..\..\..\Source\Common\;..\..\..\..\zlib\projects\BCB\Release_Build\;..\..\..\Source\CLI\;..\..\..\..\MediaInfoLib\Source\MediaInfo\Multiple;..\..\..\..\MediaInfoLib\Source\MediaInfo;..\..\..\..\MediaInfoLib\Project\BCB\Library\Release_Build;..\..\..\..\zlib\projects\BCB\Release_Build;..\..\..\..\ZenLib\Project\BCB\Library\Release_Build;..\..\..\..\Shared\Library\BCB;..\..\..\..\MediaInfoLib\Release\BCB\Library;..\..\..\..\ZenLib\Source\ZenLib;..\..\..\Source\Common;..\..\..\Source\CLI;D:\Programmation\MediaInfo\Source\CLI;$(BDS)\lib;$(BDS)\lib\obj;$(BDS)\lib\psdk;$(ILINK_LibraryPath)</ILINK_LibraryPath>
 			<DCC_ObjPath>..\..\..\..\ZenLib\Source\ZenLib;..\..\..\Source\Common;..\..\..\Source\CLI;D:\Programmation\MediaInfo\Source\CLI;$(DCC_ObjPath)</DCC_ObjPath>
 		</PropertyGroup>

@@ -12,14 +12,12 @@
 
 //---------------------------------------------------------------------------
 #include "Core.h"
-#include "ZenLib/Ztring.h"
-#include "ZenLib/File.h"
+#include <sstream>
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 const MediaInfoNameSpace::Char* MEDIAINFO_TITLE=__T("MediaArea.net/MediaInfo");
-ZenLib::Ztring Text_Temp;
-using namespace ZenLib;
+MediaInfoNameSpace::String Text_Temp;
 //---------------------------------------------------------------------------
 
 
@@ -30,7 +28,7 @@ using namespace ZenLib;
 //---------------------------------------------------------------------------
 Core::Core()
 {
-    MI=new MediaInfoNameSpace::MediaInfoList;
+    MI=new Core_MediaInfoList;
 
     GUI_Main_Handler=NULL;
     Kind=Kind_Easy;
@@ -77,10 +75,10 @@ size_t Core::Menu_File_Open_Files_Continue (const String &FileName)
     MediaInfo MI;
 
     //From: preparing an example file for reading
-    ZenLib::File From; From.Open(FileName, ZenLib::File::Access_Read); //You can use something else than a file
+    std::ifstream From(FileName.c_str(), std::ios::binary); //You can use something else than a file
 
     //From: preparing a memory buffer for reading
-    ZenLib::int8u* From_Buffer=new ZenLib::int8u[7*188]; //Note: you can do your own buffer
+    MediaInfo_int8u* From_Buffer=new MediaInfo_int8u[7*188]; //Note: you can do your own buffer
     size_t From_Buffer_Size; //The size of the read file buffer
 
     //Preparing to fill MediaInfo with a buffer
@@ -96,7 +94,7 @@ size_t Core::Menu_File_Open_Files_Continue (const String &FileName)
     do
     {
         //Reading data somewhere, do what you want for this.
-        From_Buffer_Size=From.Read(From_Buffer, 7*188);
+        From_Buffer_Size=(size_t)From.read((char*)From_Buffer, 7*188).gcount();
 
         //Sending the buffer to MediaInfo
         size_t Result=MI.Open_Buffer_Continue(From_Buffer, From_Buffer_Size);
@@ -116,7 +114,7 @@ size_t Core::Menu_File_Open_Files_Continue (const String &FileName)
             //MI.Option(__T("File_IsSeekable"), __T("0"));
             return 0;
             CanWrite_OnlyIfParsingIsOk=false;
-            int64u File_Pos=From.Position_Get();
+            MediaInfo_int64u File_Pos=(MediaInfo_int64u)From.tellg();
             A++;
             std::cout<<A<<std::endl;
             //if (A>2) {
@@ -390,7 +388,9 @@ void Core::Menu_Debug_Details (float Value)
 {
     Details=Value;
 
-    MI->Option(__T("Inform"), __T("Details;")+ZenLib::Ztring::ToZtring(Value));
+    std::basic_ostringstream<MediaInfoNameSpace::Char> Details_Text;
+    Details_Text<<Value;
+    MI->Option(__T("Inform"), __T("Details;")+Details_Text.str());
 }
 
 //---------------------------------------------------------------------------
@@ -509,7 +509,7 @@ String Core::StreamName (stream_t StreamKind) {
 }
 
 String Core::Parameters () {
-    return MediaInfoNameSpace::MediaInfo::Option_Static(__T("Info_Parameters_CSV"));
+    return Core_MediaInfo::Option_Static(__T("Info_Parameters_CSV"));
 }
 
 size_t Core::State_Get() {

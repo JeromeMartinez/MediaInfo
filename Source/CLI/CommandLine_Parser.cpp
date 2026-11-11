@@ -5,6 +5,7 @@
  */
 
 //---------------------------------------------------------------------------
+#include <sstream>
 #include <string>
 #include <vector>
 #if __has_include(<filesystem>) && defined(__cpp_lib_filesystem)
@@ -43,7 +44,7 @@
 // Defaults
 //***************************************************************************
 
-ZenLib::Ztring LogFile_FileName;
+MediaInfoNameSpace::String LogFile_FileName;
 
 //***************************************************************************
 // Main
@@ -191,11 +192,7 @@ CL_OPTION(Version)
 CL_OPTION(LogFile)
 {
     //Form : --LogFile=Text
-    #if defined(UNICODE) || defined(CLI_STRINGS_UTF8)
-        LogFile_FileName.assign(Argument, 10, std::string::npos);
-    #else
-        LogFile_FileName=ZenLib::FileName_From_Native(Argument.c_str()+10); //UTF-8 text for ZenLib
-    #endif
+    LogFile_FileName.assign(Argument, 10, std::string::npos);
 
     return MI_OK;
 }
@@ -224,36 +221,44 @@ CL_OPTION(Default)
     return MI_OK;
 }
 
-void LogFile_Action(const ZenLib::tstring& Inform)
+void LogFile_Action(Core &MI, const MediaInfoNameSpace::String& Inform)
 {
     if (LogFile_FileName.empty())
         return;
 
-    #if defined(UNICODE) || defined(CLI_STRINGS_UTF8)
-        std::string Inform_Ansi(ZenLib::Ztring(Inform).To_UTF8());
+    //UTF-8 text, the name of the file as the system gives it (UTF-16 on Windows)
+    #ifdef UNICODE
+        std::string Inform_UTF8;
+        int Size=WideCharToMultiByte(CP_UTF8, 0, Inform.c_str(), -1, NULL, 0, NULL, NULL);
+        if (Size>1)
+        {
+            Inform_UTF8.resize(Size);
+            WideCharToMultiByte(CP_UTF8, 0, Inform.c_str(), -1, &Inform_UTF8[0], Size, NULL, NULL);
+            Inform_UTF8.resize(Size-1);
+        }
+    #else //UNICODE
+        //Text in the encoding of the locale for the output, again in UTF-8 from the library for this file
+        (void)Inform;
+        MI.Menu_Option_Preferences_Option(__T("CharSet"), __T("UTF-8"));
+        std::string Inform_UTF8(MI.Inform_Get());
+        MI.Menu_Option_Preferences_Option(__T("CharSet"), MediaInfoNameSpace::String());
+    #endif //UNICODE
+    #if defined(_WIN32) && defined(__cpp_lib_filesystem)
+        std::ofstream File(fs::path(LogFile_FileName), std::ios_base::trunc);
     #else
-        std::string Inform_Ansi(ZenLib::Ztring().From_Local(Inform.c_str()).To_UTF8()); //In the encoding of the locale, as the output
+        std::ofstream File(LogFile_FileName.c_str(), std::ios_base::trunc);
     #endif
-
-#if defined(_WIN32) && defined(__cpp_lib_filesystem) && defined(__cpp_lib_char8_t)
-    std::string LogFile_FileName_u8(LogFile_FileName.To_UTF8());
-    std::u8string LogFile_FileName_u8string(LogFile_FileName_u8.begin(), LogFile_FileName_u8.end());
-    auto path = fs::path(LogFile_FileName_u8string);
-#elif defined(_WIN32) && defined(__cpp_lib_filesystem)
-    auto path = fs::u8path(LogFile_FileName.To_UTF8());
-#else
-    auto path = ZenLib::FileName_To_Native(LogFile_FileName); // Same encoding as the files opened by ZenLib (on Windows, may not have Unicode filepath support)
-#endif
-    std::ofstream File(path, std::ios_base::trunc);
 
     #if defined(CLI_CONSOLE_WIDE)
         if (CLI_Option_Bom)
             File.write("\xEF\xBB\xBF", 3);
     #endif //defined(CLI_CONSOLE_WIDE)
-    File.write(Inform_Ansi.c_str(), Inform_Ansi.size());
+    File.write(Inform_UTF8.c_str(), Inform_UTF8.size());
 }
 void CallBack_Set(Core &MI, void* Event_CallBackFunction)
 {
     //CallBack configuration
-    MI.Menu_Option_Preferences_Option(__T("Event_CallBackFunction"), __T("CallBack=memory://")+ZenLib::Ztring::ToZtring((size_t)Event_CallBackFunction));
+    std::basic_ostringstream<MediaInfoNameSpace::Char> Address;
+    Address<<(size_t)Event_CallBackFunction;
+    MI.Menu_Option_Preferences_Option(__T("Event_CallBackFunction"), __T("CallBack=memory://")+Address.str());
 }

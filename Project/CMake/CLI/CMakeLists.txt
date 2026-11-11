@@ -40,7 +40,10 @@ add_executable(mediainfo_cli ${CLI_SOURCES})
 
 set_target_properties(mediainfo_cli PROPERTIES OUTPUT_NAME mediainfo)
 
-target_compile_definitions(mediainfo_cli PRIVATE _UNICODE UNICODE)
+target_compile_definitions(mediainfo_cli PRIVATE MEDIAINFO_CLI) # Strings of the CLI, see Source/Common/Core.h
+if(WIN32)
+    target_compile_definitions(mediainfo_cli PRIVATE _UNICODE UNICODE)
+endif()
 
 include(EnableLatestCXX)
 enable_latest_cxx(mediainfo_cli)
@@ -92,14 +95,13 @@ else()
     find_package(ZLIB REQUIRED)
     find_package(Threads REQUIRED)
     find_package(MediaInfoLib REQUIRED)
-    find_package(ZenLib REQUIRED)
+    find_package(ZenLib REQUIRED) # Not used by the CLI, for the link interface of the mediainfo target
 
 
     # Link libraries
     target_link_libraries(mediainfo_cli
         PRIVATE
         mediainfo
-        "${ZenLib_LIBRARY}"
         ZLIB::ZLIB
         Threads::Threads
     )

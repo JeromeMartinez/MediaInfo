@@ -8,23 +8,21 @@
 #else
     #include <iostream>
 #endif
+#include <cstring>
 #include <fstream>
-#include "ZenLib/Ztring.h"
-#include "ZenLib/OS_Utils.h"
+#include "Common/Core.h"
 
-#ifdef __WINDOWS__
+#ifdef _WIN32
     #undef __TEXT
     #include <windows.h>
 #endif
 //---------------------------------------------------------------------------
-//Strings: Unicode, else UTF-8 text with the C++ API of the library (as in
-//ZenLib), from the same arguments and with the same output as with Unicode,
-//else (C API of the library) the bytes of the arguments and of the output
-#if !defined(UNICODE) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC)
-    #define CLI_STRINGS_UTF8
+//Strings of the CLI: wide on Windows, else narrow, see Core.h
+#if !defined(MEDIAINFO_CLI)
+    #error "MEDIAINFO_CLI must be defined for the CLI"
 #endif
 //Wide console of the Microsoft C library, UTF-8 when the output is redirected
-#if defined(_MSC_VER) && (defined(UNICODE) || defined(CLI_STRINGS_UTF8))
+#if defined(_MSC_VER)
     #define CLI_CONSOLE_WIDE
 #endif
 #if defined(CLI_CONSOLE_WIDE) && !defined(STREAM_MISSING)
@@ -36,42 +34,30 @@
 
 //---------------------------------------------------------------------------
 //Get command line args in main()
-#ifdef UNICODE
-    #ifdef _WIN32
-        #define GETCOMMANDLINE() \
-            MediaInfoNameSpace::Char** argv=CommandLineToArgvW(GetCommandLineW(), &argc); \
+#ifdef _WIN32
+    #define GETCOMMANDLINE() \
+        MediaInfoNameSpace::Char** argv=CommandLineToArgvW(GetCommandLineW(), &argc); \
 
-    #else //WIN32
-        #define GETCOMMANDLINE() \
-            std::vector<MediaInfoNameSpace::String> argv; \
-            for (int Pos=0; Pos<argc; Pos++) \
-            { \
-                    argv.push_back(ZenLib::FileName_From_Native(argv_ansi[Pos])); \
-            } \
-
-    #endif //WIN32
-#elif defined(CLI_STRINGS_UTF8)
-    #ifdef _WIN32
-        //UTF-16 command line, also for the characters which are not in the code page
-        #define GETCOMMANDLINE() \
-            wchar_t** argv_wide=CommandLineToArgvW(GetCommandLineW(), &argc); \
-            std::vector<MediaInfoNameSpace::String> argv; \
-            for (int Pos=0; Pos<argc; Pos++) \
-                argv.push_back(argv_wide?ZenLib::Ztring().From_Unicode(argv_wide[Pos]):ZenLib::FileName_From_Native(argv_ansi[Pos])); \
-            LocalFree(argv_wide); \
-
-    #else //WIN32
-        #define GETCOMMANDLINE() \
-            std::vector<MediaInfoNameSpace::String> argv; \
-            for (int Pos=0; Pos<argc; Pos++) \
-                argv.push_back(ZenLib::FileName_From_Native(argv_ansi[Pos])); \
-
-    #endif //WIN32
-#else //UNICODE
+#else //_WIN32
     #define GETCOMMANDLINE() \
         MediaInfoNameSpace::Char** argv=argv_ansi; \
 
-#endif //UNICODE
+#endif //_WIN32
+
+//---------------------------------------------------------------------------
+//Text in the code page, for the narrow functions of the C library on Windows (not the Microsoft one, see CLI_CONSOLE_WIDE)
+#if defined(_WIN32) && !defined(CLI_CONSOLE_WIDE)
+inline std::string Wide_To_CodePage(const wchar_t* Text)
+{
+    int Size=WideCharToMultiByte(CP_ACP, 0, Text, -1, NULL, 0, NULL, NULL);
+    if (Size<=1)
+        return std::string();
+    std::string ToReturn(Size, '\0');
+    WideCharToMultiByte(CP_ACP, 0, Text, -1, &ToReturn[0], Size, NULL, NULL);
+    ToReturn.resize(Size-1);
+    return ToReturn;
+}
+#endif
 
 //---------------------------------------------------------------------------
 //Write to a file or a pipe the text and a line end, in UTF-8 with CRLF line endings as the C runtime does in _O_U8TEXT mode,
@@ -167,96 +153,47 @@ inline void STRINGOUT_Wide(const wchar_t* Text)
 
 //---------------------------------------------------------------------------
 //Write to terminal
-inline void STRINGOUT(const ZenLib::tstring& Text)
+inline void STRINGOUT(const MediaInfoNameSpace::String& Text)
 {
     #ifdef UNICODE
         #if defined(STREAM_MISSING)
             wprintf(L"%ls\n", Text.c_str());
-        #elif defined(_MSC_VER)
+        #elif defined(CLI_CONSOLE_WIDE)
             STRINGOUT_Wide(Text.c_str());
-        #else //_MSC_VER
-            //Converted by blocks, without a copy of the whole text
-            const ZenLib::Char* Data=Text.c_str();
-            size_t Data_Size=ZenLib::tstring::traits_type::length(Data); //Up to the first NUL, as the converted text
-            const size_t Block_Size=0x10000;
-            for (size_t Pos=0; Pos<Data_Size;)
-            {
-                size_t Size=Data_Size-Pos;
-                if (Size>Block_Size)
-                {
-                    Size=Block_Size;
-                    if (Data[Pos+Size-1]>=0xD800 && Data[Pos+Size-1]<0xDC00)
-                        Size++; //No split of a UTF-16 surrogate pair
-                }
-                std::cout<<ZenLib::Ztring(Data+Pos, Size).To_Local().c_str();
-                Pos+=Size;
-            }
-            std::cout<<std::endl;
-        #endif //_MSC_VER
-    #elif defined(CLI_STRINGS_UTF8)
-        #if defined(STREAM_MISSING)
-            wprintf(L"%ls\n", ZenLib::Ztring(Text).To_Unicode().c_str());
-        #elif defined(_MSC_VER)
-            STRINGOUT_Wide(ZenLib::Ztring(Text).To_Unicode().c_str());
-        #else //_MSC_VER
-            //Converted by blocks, without a copy of the whole text
-            const char* Data=Text.c_str();
-            size_t Data_Size=ZenLib::tstring::traits_type::length(Data); //Up to the first NUL, as the converted text
-            const size_t Block_Size=0x10000;
-            for (size_t Pos=0; Pos<Data_Size;)
-            {
-                size_t Size=Data_Size-Pos;
-                if (Size>Block_Size)
-                {
-                    Size=Block_Size;
-                    while (Size && ((unsigned char)Data[Pos+Size]&0xC0)==0x80)
-                        Size--; //No split of a UTF-8 character (also the 3 bytes of a byte kept by ZenLib)
-                    if (!Size)
-                        Size=Block_Size; //Not UTF-8
-                }
-                std::cout<<ZenLib::Ztring(Data+Pos, Size).To_Local().c_str();
-                Pos+=Size;
-            }
-            std::cout<<std::endl;
-        #endif //_MSC_VER
+        #else //CLI_CONSOLE_WIDE
+            std::cout<<Wide_To_CodePage(Text.c_str())<<std::endl;
+        #endif //CLI_CONSOLE_WIDE
     #else // UNICODE
         #if defined(STREAM_MISSING)
             fprintf(stdout, "%s\n", Text.c_str());
         #else
             std::cout<<Text.c_str()<<std::endl;
-        #endif //_MSC_VER
+        #endif //STREAM_MISSING
     #endif // UNICODE
 }
-inline void STRINGERR(ZenLib::Ztring Text)
+inline void STRINGERR(const MediaInfoNameSpace::String& Text)
 {
     #ifdef UNICODE
         #if defined(STREAM_MISSING)
             fwprintf(stderr, L"%ls\n", Text.c_str());
-        #elif defined(_MSC_VER)
+        #elif defined(CLI_CONSOLE_WIDE)
             std::wcerr<<Text.c_str()<<std::endl;
-        #else //_MSC_VER
-            std::cerr<<Text.To_Local().c_str()<<std::endl;
-        #endif //_MSC_VER
-    #elif defined(CLI_STRINGS_UTF8)
-        #if defined(STREAM_MISSING)
-            fwprintf(stderr, L"%ls\n", Text.To_Unicode().c_str());
-        #elif defined(_MSC_VER)
-            std::wcerr<<Text.To_Unicode().c_str()<<std::endl;
-        #else //_MSC_VER
-            std::cerr<<Text.To_Local().c_str()<<std::endl;
-        #endif //_MSC_VER
+        #else //CLI_CONSOLE_WIDE
+            std::cerr<<Wide_To_CodePage(Text.c_str())<<std::endl;
+        #endif //CLI_CONSOLE_WIDE
     #else // UNICODE
         #if defined(STREAM_MISSING)
             fprintf(stderr, "%s\n", Text.c_str());
         #else
             std::cerr<<Text.c_str()<<std::endl;
-        #endif //_MSC_VER
+        #endif //STREAM_MISSING
     #endif // UNICODE
 }
 
+//ASCII text
 inline void TEXTOUT(const char* Text)
 {
-    STRINGOUT(ZenLib::Ztring().From_ISO_8859_1(Text));
+    STRINGOUT(MediaInfoNameSpace::String(Text, Text+strlen(Text)));
 }
 
 enum MI_Return
