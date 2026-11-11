@@ -162,7 +162,8 @@ dnl MediaInfoLib
 dnl
 if test "$with_dll" != "yes"; then
 	if test -e ../../../../MediaInfoLib/Project/GNU/Library/lib$with_libmediainfo_name.la; then
-		CXXFLAGS="$CXXFLAGS $(../../../../MediaInfoLib/Project/GNU/Library/libmediainfo-config CXXFLAGS)"
+		MediaInfoLib_Unicode="$(../../../../MediaInfoLib/Project/GNU/Library/libmediainfo-config Unicode)"
+		MediaInfoLib_Flags="$(../../../../MediaInfoLib/Project/GNU/Library/libmediainfo-config CXXFLAGS)"
 		if test "$enable_staticlibs" = "yes"; then
 			with_mediainfolib="builtin (static)"
 			LIBS="$LIBS $(../../../../MediaInfoLib/Project/GNU/Library/libmediainfo-config LIBS_Static)"
@@ -171,7 +172,8 @@ if test "$with_dll" != "yes"; then
 			LIBS="$LIBS $(../../../../MediaInfoLib/Project/GNU/Library/libmediainfo-config LIBS)"
 		fi
 	elif test "$(command -v libmediainfo-config)" ; then
-		CXXFLAGS="$CXXFLAGS $(libmediainfo-config CXXFLAGS)"
+		MediaInfoLib_Unicode="$(libmediainfo-config Unicode)"
+		MediaInfoLib_Flags="$(libmediainfo-config CXXFLAGS)"
 		if test "$enable_staticlibs" = "yes"; then
 			with_mediainfolib="system (static)"
 			LIBS="$LIBS $(libmediainfo-config LIBS_Static)"
@@ -181,7 +183,8 @@ if test "$with_dll" != "yes"; then
 		fi
 	else
 		if ${PKG_CONFIG:-pkg-config} --exists libmediainfo; then
-			CXXFLAGS="$CXXFLAGS $(${PKG_CONFIG:-pkg-config} --cflags libmediainfo)"
+			MediaInfoLib_Unicode="$(${PKG_CONFIG:-pkg-config} --variable=Unicode libmediainfo)"
+			MediaInfoLib_Flags="$(${PKG_CONFIG:-pkg-config} --cflags libmediainfo)"
 			if test "$enable_staticlibs" = "yes"; then
 				with_mediainfolib="system (static)"
 				LIBS="$LIBS $(${PKG_CONFIG:-pkg-config} --variable=Libs_Static libmediainfo)"
@@ -194,6 +197,18 @@ if test "$with_dll" != "yes"; then
 			AC_MSG_ERROR([libmediainfo configuration is not found])
 		fi
 	fi
+	if test -n "$MediaInfoLib_Unicode" && test "$MediaInfoLib_Unicode" != "$enable_unicode"; then
+		dnl Library built with the other Unicode mode: its classes with the strings of this program, without its Unicode define, and a
+		dnl libzen of this program which is not the one of the library (see below)
+		if test "$enable_staticlibs" = "yes"; then
+			AC_MSG_ERROR([libmediainfo built with another Unicode mode than libzen must be a shared library])
+		fi
+		AC_DEFINE(MEDIAINFOLIB_OTHER_UNICODE)
+		MediaInfoLib_OtherUnicode="yes"
+		MediaInfoLib_Flags="$(echo " $MediaInfoLib_Flags " | sed -e 's/ -DUNICODE / /g' -e 's/ -D_UNICODE / /g')"
+		with_mediainfolib="$with_mediainfolib, Unicode=$MediaInfoLib_Unicode"
+	fi
+	CXXFLAGS="$CXXFLAGS $MediaInfoLib_Flags"
 else
 	with_mediainfolib="load at runtime"
 fi
@@ -204,13 +219,28 @@ dnl
 if test -e ../../../../ZenLib/Project/GNU/Library/libzen.la; then
 	CXXFLAGS="$CXXFLAGS $(../../../../ZenLib/Project/GNU/Library/libzen-config CXXFLAGS)"
 	MediaInfoLib_CXXFLAGS="$MediaInfoLib_CXXFLAGS $(../../../../ZenLib/Project/GNU/Library/libzen-config CXXFLAGS)"
-	if test "$enable_staticlibs" = "yes"; then
+	if test "$MediaInfoLib_OtherUnicode" = "yes"; then
+		if test -z "$(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS_Static)"; then
+			AC_MSG_ERROR([libzen built with another Unicode mode than libmediainfo must be a static library])
+		fi
+		with_zenlib="builtin (static, not the one of libmediainfo)"
+		LIBS="$(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS_Static) $LIBS"
+		LIBS_Save="$LIBS"
+		LIBS=""
+		LDFLAGS_Save="$LDFLAGS"
+		LDFLAGS="$LDFLAGS -Wl,--exclude-libs,ALL"
+		dnl Not with the linker of macOS, which uses the libzen of the library anyway
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])], , [LDFLAGS="$LDFLAGS_Save"])
+		LIBS="$LIBS_Save"
+	elif test "$enable_staticlibs" = "yes"; then
 		with_zenlib="builtin (static)"
 		LIBS="$LIBS $(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS_Static)"
 	else
 		with_zenlib="builtin"
 		LIBS="$LIBS $(../../../../ZenLib/Project/GNU/Library/libzen-config LIBS)"
 	fi
+elif test "$MediaInfoLib_OtherUnicode" = "yes"; then
+	AC_MSG_ERROR([libzen built with another Unicode mode than libmediainfo must be in ../../../../ZenLib])
 elif test "$(command -v libzen-config)" ; then
 	CXXFLAGS="$CXXFLAGS $(libzen-config CXXFLAGS)"
 	MediaInfoLib_CXXFLAGS="$MediaInfoLib_CXXFLAGS $(libzen-config CXXFLAGS)"

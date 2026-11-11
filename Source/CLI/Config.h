@@ -19,8 +19,10 @@
 //---------------------------------------------------------------------------
 //Strings: Unicode, else UTF-8 text with the C++ API of the library (as in
 //ZenLib), from the same arguments and with the same output as with Unicode,
-//else (C API of the library) the bytes of the arguments and of the output
-#if !defined(UNICODE) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC)
+//else (C API of the library, or its classes with the strings of the locale
+//when it has the other Unicode mode) the bytes of the arguments and of the
+//output
+#if !defined(UNICODE) && !defined(MEDIAINFO_DLL_RUNTIME) && !defined(MEDIAINFO_DLL_STATIC) && !defined(MEDIAINFOLIB_OTHER_UNICODE)
     #define CLI_STRINGS_UTF8
 #endif
 //Wide console of the Microsoft C library, UTF-8 when the output is redirected
