@@ -25,6 +25,16 @@
 #else
     #include "MediaInfo/MediaInfoList.h"
     #define MediaInfoNameSpace MediaInfoLib
+    #if defined(MEDIAINFOLIB_OTHER_UNICODE)
+        //Library built with the other Unicode mode: its classes with the strings of this program
+        #if defined(UNICODE)
+            #define MediaInfo     MediaInfoW
+            #define MediaInfoList MediaInfoListW
+        #else
+            #define MediaInfo     MediaInfoA
+            #define MediaInfoList MediaInfoListA
+        #endif
+    #endif
 #endif
 using namespace MediaInfoNameSpace;
 //---------------------------------------------------------------------------
