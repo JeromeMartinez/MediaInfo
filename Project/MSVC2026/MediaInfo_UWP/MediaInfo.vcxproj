@@ -102,8 +102,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Arm\Debug;..\..\..\..\ZenLib\Project\MSVC2026\Arm\Debug;..\..\..\..\zlib\contrib\vstudio\vc18\Arm\Debug\zlibuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;brotliuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Arm\Debug;..\..\..\..\ZenLib\Project\MSVC2026\Arm\Debug;..\..\..\..\zlib\contrib\vstudio\vc18\Arm\Debug\zlibuwp;..\..\..\..\brotli\Project\MSVC2026\Arm\Debug\brotliuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -114,8 +114,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Arm\Release;..\..\..\..\ZenLib\Project\MSVC2026\Arm\Release;..\..\..\..\zlib\contrib\vstudio\vc18\Arm\Release\zlibuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;brotliuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Arm\Release;..\..\..\..\ZenLib\Project\MSVC2026\Arm\Release;..\..\..\..\zlib\contrib\vstudio\vc18\Arm\Release\zlibuwp;..\..\..\..\brotli\Project\MSVC2026\Arm\Release\brotliuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -126,8 +126,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Win32\Debug;..\..\..\..\ZenLib\Project\MSVC2026\Win32\Debug;..\..\..\..\zlib\contrib\vstudio\vc18\Debug\zlibuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;brotliuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Win32\Debug;..\..\..\..\ZenLib\Project\MSVC2026\Win32\Debug;..\..\..\..\zlib\contrib\vstudio\vc18\Debug\zlibuwp;..\..\..\..\brotli\Project\MSVC2026\Debug\brotliuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,8 +138,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Win32\Release;..\..\..\..\ZenLib\Project\MSVC2026\Win32\Release;..\..\..\..\zlib\contrib\vstudio\vc18\Release\zlibuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;brotliuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\Win32\Release;..\..\..\..\ZenLib\Project\MSVC2026\Win32\Release;..\..\..\..\zlib\contrib\vstudio\vc18\Release\zlibuwp;..\..\..\..\brotli\Project\MSVC2026\Release\brotliuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -150,8 +150,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\x64\Debug;..\..\..\..\ZenLib\Project\MSVC2026\x64\Debug;..\..\..\..\zlib\contrib\vstudio\vc18\x64\Debug\zlibuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;brotliuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\x64\Debug;..\..\..\..\ZenLib\Project\MSVC2026\x64\Debug;..\..\..\..\zlib\contrib\vstudio\vc18\x64\Debug\zlibuwp;..\..\..\..\brotli\Project\MSVC2026\x64\Debug\brotliuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -162,8 +162,8 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\x64\Release;..\..\..\..\ZenLib\Project\MSVC2026\x64\Release;..\..\..\..\zlib\contrib\vstudio\vc18\x64\Release\zlibuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MediaInfo-Static_UWP.lib;ZenLib_UWP.lib;zlibuwp.lib;brotliuwp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\..\MediaInfoLib\Project\MSVC2026\x64\Release;..\..\..\..\ZenLib\Project\MSVC2026\x64\Release;..\..\..\..\zlib\contrib\vstudio\vc18\x64\Release\zlibuwp;..\..\..\..\brotli\Project\MSVC2026\x64\Release\brotliuwp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
