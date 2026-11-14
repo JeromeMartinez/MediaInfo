@@ -119,6 +119,15 @@ run_command unset "${mediainfo}" "${directory}/${first_directory}"
 cmd_stdout="$(listed)"
 check_output "directory listing" "$(printf '%s\n' "${long_directory}/file.flac" "${long_directory}/sub/inner.flac" | sort | tr '\n' '|')"
 
+# relative path, from a short current directory
+cd "${directory}" || fatal "internal" "cd command failed"
+run_command unset "${mediainfo}" "${fields}" "${relative_directory}/file.flac"
+check_output "relative path" "${relative_directory}/file.flac|${relative_directory}|file.flac|Long path"
+run_command unset "${mediainfo}" "${first_directory}"
+cmd_stdout="$(listed)"
+check_output "relative directory listing" "$(printf '%s\n' "${relative_directory}/file.flac" "${relative_directory}/sub/inner.flac" | sort | tr '\n' '|')"
+cd "${OLDPWD}" || fatal "internal" "cd command failed"
+
 # log file, template file, fixed copy of a file in the long directory
 run_command unset "${mediainfo}" "--LogFile=${long_directory}/log.txt" "${long_directory}/file.flac"
 check_true "log file" grep -q 'Long path' "${long_directory}/log.txt"
@@ -142,13 +151,5 @@ if test -n "${WINDOWS}" && [[ "${directory}" == [A-Za-z]:/* ]] ; then
         echo "SKIP: ${test}/${config}, network path, ${network_directory%%/${relative_directory}} not available" >&${fd}
     fi
 fi
-
-# relative path, from a short current directory
-cd "${directory}" || fatal "internal" "cd command failed"
-run_command unset "${mediainfo}" "${fields}" "${relative_directory}/file.flac"
-check_output "relative path" "${relative_directory}/file.flac|${relative_directory}|file.flac|Long path"
-run_command unset "${mediainfo}" "${first_directory}"
-cmd_stdout="$(listed)"
-check_output "relative directory listing" "$(printf '%s\n' "${relative_directory}/file.flac" "${relative_directory}/sub/inner.flac" | sort | tr '\n' '|')"
 
 exit ${status}
