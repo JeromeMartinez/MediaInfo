@@ -65,7 +65,7 @@ jobs:
           echo "LIBS_COMMITS=$(git -C ZenLib rev-parse --short HEAD)-$(git -C MediaInfoLib rev-parse --short HEAD)" >> "${GITHUB_ENV}"
       - name: Libraries cache
         id: libs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ZenLib/Project/GNU/Library
@@ -140,7 +140,7 @@ jobs:
           echo "LIBS_COMMITS=$(git -C ZenLib rev-parse --short HEAD)-$(git -C MediaInfoLib rev-parse --short HEAD)" >> "${GITHUB_ENV}"
       - name: Libraries cache
         id: libs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ZenLib/Project/GNU/Library
@@ -179,7 +179,7 @@ jobs:
           echo "LIBS_COMMITS=$(git -C ZenLib rev-parse --short HEAD)-$(git -C MediaInfoLib rev-parse --short HEAD)" >> "${GITHUB_ENV}"
       - name: Libraries cache
         id: libs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ZenLib/Project/GNU/Library
